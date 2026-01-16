@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>vázlatok - Képtár</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            padding: 20px 0;
+        }
+        
+        header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .image-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .image-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+        
+        .image-card img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .image-info {
+            padding: 15px;
+        }
+        
+        .image-info h3 {
+            color: #333;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            word-break: break-all;
+        }
+        
+        .image-link {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 0.9em;
+            transition: background 0.3s ease;
+            margin-top: 10px;
+        }
+        
+        .image-link:hover {
+            background: #764ba2;
+        }
+        
+        .copy-btn {
+            background: #667eea;
+            color: white;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-left: 5px;
+            transition: background 0.3s ease;
+        }
+        
+        .copy-btn:hover {
+            background: #764ba2;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+        }
+        
+        .modal-content {
+            margin: auto;
+            display: block;
+            max-width: 90%;
+            max-height: 90vh;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 1001;
+        }
+        
+        .close:hover {
+            color: #bbb;
+        }
+        
+        .upload-section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 40px;
+        }
+        
+        .upload-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .upload-section p {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        
+        .github-link {
+            display: inline-block;
+            background: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background 0.3s ease;
+        }
+        
+        .github-link:hover {
+            background: #555;
+        }
+        
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 1.2em;
+            padding: 40px;
+        }
+        
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2em;
+            }
+            
+            .gallery {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎨 vázlatok</h1>
+            <p>Képtár és vázlatok gyűjtemény</p>
+        </header>
+        
+        <div class="upload-section">
+            <h2>Új képek feltöltése</h2>
+            <p>Látogass el a GitHub repozitóriumra, és töltsd fel az új képeidet az <code>images</code> mappába.</p>
+            <a href="https://github.com/silentreaver/v-zlatok/tree/main/images" class="github-link" target="_blank">
+                Menj a GitHub-ra →
+            </a>
+        </div>
+        
+        <div id="gallery" class="gallery">
+            <div class="loading">Képek betöltése...</div>
+        </div>
+    </div>
+    
+    <div id="imageModal" class="modal">
+        <span class="close">&times;</span>
+        <img class="modal-content" id="modalImage">
+    </div>
+    
+    <script>
+        const REPO_OWNER = 'silentreaver';
+        const REPO_NAME = 'v-zlatok';
+        const IMAGES_PATH = 'images';
+        const API_URL = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${IMAGES_PATH}`;
+        
+        const gallery = document.getElementById('gallery');
+        const modal = document.getElementById('imageModal');
+        const modalImage = document.getElementById('modalImage');
+        const closeBtn = document.querySelector('.close');
+        
+        closeBtn.onclick = () => {
+            modal.style.display = 'none';
+        };
+        
+        window.onclick = (event) => {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        };
+        
+        async function loadImages() {
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) throw new Error('Nem sikerült betölteni a képeket');
+                
+                const files = await response.json();
+                const imageFiles = files.filter(file => 
+                    /\.(jpg|jpeg|png|gif|webp)$/i.test(file.name)
+                );
+                
+                if (imageFiles.length === 0) {
+                    gallery.innerHTML = '<p style="color: white; grid-column: 1/-1; text-align: center;">Még nincsenek feltöltött képek. Töltsd fel az elsőt!</p>';
+                    return;
+                }
+                
+                gallery.innerHTML = '';
+                imageFiles.forEach(file => {
+                    const rawUrl = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/${IMAGES_PATH}/${file.name}`;
+                    
+                    const card = document.createElement('div');
+                    card.className = 'image-card';
+                    card.innerHTML = `
+                        <img src="${rawUrl}" alt="${file.name}" onclick="openModal('${rawUrl}')">
+                        <div class="image-info">
+                            <h3>${file.name}</h3>
+                            <button class="copy-btn" onclick="copyToClipboard('${rawUrl}')">Link másolása</button>
+                            <a href="${rawUrl}" class="image-link" target="_blank">Megnyitás</a>
+                        </div>
+                    `;
+                    gallery.appendChild(card);
+                });
+            } catch (error) {
+                gallery.innerHTML = `<p style="color: white; grid-column: 1/-1; text-align: center;">Hiba: ${error.message}</p>`;
+                console.error('Hiba:', error);
+            }
+        }
+        
+        function openModal(src) {
+            modal.style.display = 'block';
+            modalImage.src = src;
+        }
+        
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Link másolva a vágólapra!');
+            }).catch(err => {
+                console.error('Másolás sikertelen:', err);
+            });
+        }
+        
+        loadImages();
+        
+        // Frissítés 30 másodpercenként
+        setInterval(loadImages, 30000);
+    </script>
+</body>
+</html>
